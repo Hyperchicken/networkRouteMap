@@ -1,15 +1,41 @@
 import Map from 'ol/Map';
 import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import TileWMSSource from 'ol/source/TileWMS';
-import StamenSource from 'ol/source/Stamen';
-import {fromLonLat} from 'ol/proj';
+import GeoJSON from 'ol/format/GeoJSON';
+import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
+import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer';
+import {TileWMS as TileWMSSource, Stamen as StamenSource, Vector as VectorSource} from 'ol/source';
+import {fromLonLat, transform} from 'ol/proj';
 
 var map;
 let viewDefault = new View({
     center: fromLonLat([144.967386, -37.818259]),
     zoom: 12
 })
+
+let curveBoardSource = new VectorSource({
+    url: 'data/curveboards.geojson',
+    format: new GeoJSON()
+});
+
+var curveBoardStyle = new Style({
+    fill: new Fill({
+      color: 'rgba(255, 255, 255, 0.6)',
+    }),
+    stroke: new Stroke({
+      color: '#319FD3',
+      width: 1,
+    }),
+    image: new CircleStyle({
+      radius: 5,
+      fill: new Fill({
+        color: 'rgba(255, 255, 255, 0.6)',
+      }),
+      stroke: new Stroke({
+        color: '#319FD3',
+        width: 1,
+      }),
+    }),
+  });
 
 let railCorridorLayer = new TileLayer({
     source: new TileWMSSource({
@@ -33,7 +59,13 @@ let trainStationLayer = new TileLayer({
         },
         ratio: 1,
         serverType: 'geoserver',
+        style: curveBoardStyle,
     })
+});
+
+let curveBoardLayer = new VectorLayer({
+    source: curveBoardSource,
+    style: curveBoardStyle
 });
 
 initMap();
@@ -51,5 +83,9 @@ function initMap() {
             trainStationLayer
         ],
         view: viewDefault
+    });
+    map.on('click', function(evt){
+        alert("yay")
+        //console.log(transform(evt.coordinate, 'EPSG:3857', 'EPSG:4326'));
     });
 }
